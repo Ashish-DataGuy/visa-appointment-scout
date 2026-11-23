@@ -1,0 +1,25 @@
+{
+  "channels": [
+    "Exact group or channel title"
+  ],
+  "availability_phrases": [
+    "slot available",
+    "slots available",
+    "slots are open",
+    "new slots",
+    "slots released",
+    "appointment available",
+    "appointment slots open",
+    "new appointment dates",
+    "calendar opened",
+    "saw slots",
+    "got a slot",
+    "got an appointment date"
+  ],
+  "exclude_phrases": [
+    "no slots available",
+    "slots are not available",
+    "fake slot alert",
+    "old slot update"
+  ]
+}

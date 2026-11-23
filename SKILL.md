@@ -1,15 +1,21 @@
 ---
 name: visa-appointment-scout
-description: Surface visa appointment signals from official public updates and authorized community reports, summarize consular experiences, and help applicants prepare to schedule. Use for visa-slot monitoring or appointment research; do not automate a protected booking portal unless its current official terms expressly permit it.
+description: Monitor permitted public agency feeds and user-selected Telegram chats for visa appointment signals, raise local alerts, and help applicants verify and prepare to schedule. Use for visa-slot monitoring or appointment research; do not automate a protected booking portal.
 ---
 
 # Visa Appointment Scout
 
-Help an individual applicant understand appointment availability and prepare to act. Separate official information from community reports, protect applicants' data, and keep account actions under the applicant's control.
+Help an individual applicant find timely appointment signals and prepare to act. Separate official information from community reports, protect applicants' data, and keep account actions under the applicant's control.
 
 ## How to use this skill
 
-Install this folder as a skill in a compatible agent, or provide the repository and ask the agent to read `SKILL.md` and follow `README.md`. `scripts/configure_credentials.py` creates a local private Telegram configuration, `scripts/list_chats.py` lists accessible dialog titles without reading history, and `scripts/export_recent_messages.py` prints a bounded, redacted sample for analysis. The skill file by itself is guidance; the scripts are what create the local Telegram connection.
+Install this folder as a skill in a compatible agent, or provide the repository and ask the agent to read `SKILL.md` and follow `README.md`. Setup helpers configure a private Telegram client; `scripts/monitor_telegram.py` watches only explicitly selected chats and can issue local keyword alerts. The local monitor does not use an AI model on Telegram content. The skill file by itself is guidance; scripts and a running local process provide monitoring.
+
+## Telegram content and AI-use restriction
+
+Recheck [Telegram's API Terms](https://core.telegram.org/api/terms) and [Content Licensing Terms](https://telegram.org/tos/content-licensing?setln=en) before using Telegram data. The terms reviewed on 2026-11-23 prohibit scraping, indexing, harvesting, aggregating, or using platform content to train, validate, develop, enhance, benchmark, or deploy AI/ML systems, except where all relevant users give explicit, informed, affirmative, continuing consent limited to that chat and content. Do not send Telegram posts to an AI model, summarize them with an AI, or use them as model context unless that consent requirement is met. A channel being public or a user joining it does not establish that consent.
+
+The included monitor performs simple local phrase matching only, keeps message text in memory only, and sends no Telegram content to an AI service or notification. It raises a generic alert so the user can open Telegram and inspect the source in Telegram's ordinary interface. Do not add message archives, global search, bulk export, or AI classification. If Telegram changes these terms, reassess before changing this design.
 
 ## Portal access gate
 
@@ -34,7 +40,7 @@ Prefer, in this order:
 1. Current official country and post instructions from the foreign ministry, embassy or consulate, and authorized scheduling service.
 2. Official government announcements and public data feeds or APIs, but only through their published access methods.
 3. Official case-status and application pages, such as CEAC or USCIS, when relevant to the applicant's question.
-4. Community channels and firsthand reports, clearly labeled as unverified experience.
+4. Community channels and firsthand reports, checked by the user in Telegram and clearly treated as unverified experience. Do not feed posts to an AI model unless the Telegram consent requirement above is met.
 
 For third-country-national (TCN) questions, check the current rule and the specific post. The Department of State's July 15, 2026 guidance says nonimmigrant applicants should generally schedule in their country of nationality or residence; applying elsewhere may make qualification harder, fees may not transfer, and wait times may be longer. A successful story from one post is not evidence that another post will accept the same case.
 
@@ -47,7 +53,7 @@ Useful starting points:
 - [CEAC visa status](https://ceac.state.gov/CEACStatTracker/Status.aspx)
 - [USCIS](https://www.uscis.gov/)
 
-## Local Telegram setup pattern
+## Local Telegram setup and alerts
 
 Keep the Telegram reader in its own project directory and virtual environment. The repository includes a pinned Telethon dependency and setup scripts; follow the commands in `README.md`.
 
@@ -62,7 +68,9 @@ Add `.venv/`, `.env`, `.env.*`, `private/`, and `*.session*` to `.gitignore`; en
 
 Load the local file without overriding values already exported by the user, and keep the session path inside `private/`. Ask the account owner to enter API values, phone number, login code, and any 2FA password directly in their local terminal; hide the API hash, code, and password while typing. Do not persist login codes or 2FA passwords. Each user should create and retain their own session.
 
-First list the authorized dialog titles to confirm the intended channels; this does not require reading history. When the user requests message analysis, use the exporter with explicit channel titles and `--confirm-read`. It defaults to 300 recent messages per channel (with a hard limit of 1,000), prints redacted JSONL to standard output, and does not save message history. Record the date range, then paginate older only as needed to cover the requested period. Do not interpret reaching a message limit as evidence that the sample is representative. Redaction is heuristic, so inspect content before sharing it outside the user's local agent session.
+List authorized dialog titles, then copy `watchlist.example.json` to `watchlist.local.json` and select exact group or channel titles. Set the phrases to match the community's wording. Start `scripts/monitor_telegram.py` in the foreground to see that the connection works; it alerts on new matching posts and Telegram's pending updates after reconnection. For an always-on Mac, the user can install the LaunchAgent described in `README.md`. It runs only while the user account is logged in and the Mac has connectivity; sleep, outages, missed Telegram updates, notification settings, and keyword gaps can delay or prevent an alert. Do not claim every slot or message will be detected.
+
+The matcher is deterministic and intentionally cautious: it can miss synonyms, non-English posts, images, or ambiguous phrasing, and can alert on rumors or outdated posts. The notification is a lead, not confirmation of live inventory. It tells the user to open the original post and manually check the official scheduling service. Store only the local Telethon session and monitor diagnostics; do not persist message text, scrape chat history, or send content to AI.
 
 For government updates, prefer official RSS feeds, documented public APIs, and public notices. Use only each source's published access method. Do not scrape a site or automate a logged-in account when its terms do not allow it. The visa wait-time table is a monthly estimate; it is not a feed of live appointment slots.
 
@@ -72,24 +80,24 @@ Connect only through an account the applicant controls and only to channels or g
 
 - Keep each user's API credentials and login codes out of chat. Enter them locally or use an approved local secret store.
 - Keep `.env` and Telegram session databases out of Git; restrict local permissions and never share session files.
-- Read a bounded, user-selected recent window first. Expand the date range only when needed for the question; do not retain an unlimited message archive by default.
-- Use message text and timestamps only when sufficient. Avoid downloading media or attachments unless the applicant specifically asks and the material is needed.
-- Remove names, handles, phone numbers, email addresses, passport or case identifiers, and unrelated personal details before analysis or sharing.
+- Monitor only explicitly selected group/channel titles. Do not read or export historical message contents for AI analysis.
+- The monitor may inspect incoming text in memory solely for local phrase matching. Do not download media or attachments.
+- Do not send Telegram content, excerpts, screenshots, or user paraphrases of message content to an AI system unless the Telegram consent requirement above is met. Redaction alone does not establish consent.
 - Do not post to groups, contact members, forward messages, or quote identifiable stories unless the applicant explicitly requests it and has permission to share.
 
-For each useful report, capture only the minimum needed: source, timestamp and time zone, country/post, visa category, appointment stage (for example biometrics or interview), whether the person merely saw a date or actually booked it, and the reported outcome. Deduplicate forwards and copied messages. Keep the distinction between:
+The user must make any assessment of Telegram posts in the Telegram client. Do not classify, count, compare, summarize, or draw conclusions from Telegram-derived reports in the AI conversation unless the Telegram consent requirement above is met. The distinctions below are general guidance for the user when reviewing sources themselves:
 
 - **Officially confirmed:** stated by the responsible agency or scheduling service.
 - **Firsthand report:** a member describes their own experience; useful but unverified.
 - **Secondhand or speculative:** hearsay, prediction, or advice; do not present as fact.
 
-Multiple independent firsthand reports can strengthen a signal, but they do not confirm live inventory. State how many messages and what date range were reviewed. Report sample limits, conflicting reports, and missing evidence. Do not infer a release schedule from a short sample.
+Independent firsthand reports may strengthen a person's lead, but do not confirm live inventory. Do not infer a release schedule from a short sample.
 
 ## Alerts and booking help
 
-Make alerts concise and non-alarming. Include the post, visa category, reported appointment stage, source time, confidence label, and a link to the official page. Say “member reported seeing a slot” unless a booking is independently confirmed. Do not send repeated alerts for duplicate posts.
+Make local alerts concise and non-alarming. The included monitor intentionally avoids copying the post or its text into the alert. It says only that a selected group may contain an appointment signal and asks the user to verify it in Telegram. Do not repeat Telegram-derived content back in the AI conversation unless the consent requirement is met.
 
-The agent may summarize official instructions, prepare a personalized checklist from the applicant's facts, explain what a community report does and does not establish, and guide the applicant to the official portal. The applicant must personally sign in, handle any CAPTCHA or verification, review the date and post, and submit or pay. Never ask for or accept passwords, one-time codes, 2FA passwords, payment details, or session files in chat.
+The agent may summarize official instructions, prepare a personalized checklist from facts not derived from Telegram, and guide the applicant to the official portal. The applicant must personally sign in, handle any CAPTCHA or verification, review the date and submit or pay. Never ask for or accept passwords, one-time codes, 2FA passwords, payment details, or session files in chat.
 
 Do not give legal or case-specific immigration conclusions based on group anecdotes. For eligibility, TCN strategy, refusals, administrative processing, or high-consequence form answers, point to current official instructions and, where appropriate, a qualified immigration attorney.
 

@@ -9,8 +9,3 @@ official_sources:
     url: https://www.ustraveldocs.com/
     access: manual-only
     notes: Follow current country-specific terms; India portal terms prohibit automated access.
-
-telegram_channels:
-  # Add exact channel titles from your own Telegram dialog list.
-  - title: ""
-    purpose: ""
