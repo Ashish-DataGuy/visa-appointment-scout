@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 
 from dotenv import dotenv_values, set_key
+from local_security import secure_directory, secure_file
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"
@@ -16,8 +17,7 @@ PRIVATE_DIR = ROOT / "private"
 
 def main() -> None:
     os.umask(0o077)
-    PRIVATE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
-    PRIVATE_DIR.chmod(0o700)
+    secure_directory(PRIVATE_DIR)
 
     existing = dotenv_values(ENV_FILE) if ENV_FILE.exists() else {}
     api_id = str(existing.get("TG_API_ID") or "").strip()
@@ -35,8 +35,8 @@ def main() -> None:
 
     set_key(ENV_FILE, "TG_API_ID", api_id, quote_mode="never")
     set_key(ENV_FILE, "TG_API_HASH", api_hash, quote_mode="never")
-    ENV_FILE.chmod(0o600)
-    print("Saved Telegram API values to the Git-ignored .env with owner-only permissions.")
+    secure_file(ENV_FILE)
+    print("Saved Telegram API values to the Git-ignored .env with owner-only permissions where supported.")
     print("Credential values were not displayed.")
 
 

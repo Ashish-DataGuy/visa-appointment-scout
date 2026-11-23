@@ -1,6 +1,6 @@
 # Visa Appointment Scout
 
-A reusable Codex/AI-agent skill and local alert tool for visa-appointment research. It watches only explicitly selected Telegram chats on the user's Mac and gives a local notification when new or pending messages match configured phrases. Message text stays on the device and is not sent to an AI. It does **not** access or automate a protected visa-booking calendar.
+A reusable Codex/AI-agent skill and local alert tool for visa-appointment research. It watches only explicitly selected Telegram chats on the user's Mac or Windows PC and gives a local notification when new or pending messages match configured phrases. Message text stays on the device and is not sent to an AI. It does **not** access or automate a protected visa-booking calendar.
 
 ## Use this with an AI agent
 
@@ -21,13 +21,26 @@ python3 -m venv .venv
 .venv/bin/python scripts/list_chats.py
 ```
 
-Create your own Telegram API credentials at [my.telegram.org/apps](https://my.telegram.org/apps). The credential helper prompts in the local terminal, hides the API hash, and writes a Git-ignored `.env` with owner-only permissions. The first `list_chats.py` run prompts for the phone number, login code, and 2FA password locally. It lists dialog titles only.
+On Windows PowerShell, use:
+
+```powershell
+git clone https://github.com/Ashish-DataGuy/visa-appointment-scout.git
+Set-Location visa-appointment-scout
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts\configure_credentials.py
+.\.venv\Scripts\python.exe scripts\list_chats.py
+```
+
+Create your own Telegram API credentials at [my.telegram.org/apps](https://my.telegram.org/apps). The credential helper prompts in the local terminal, hides the API hash, and writes a Git-ignored `.env` with owner-only permissions. On Windows it applies an NTFS access-control rule for the current account; keep the project in your own user profile, not a shared folder. The first `list_chats.py` run prompts for the phone number, login code, and 2FA password locally. It lists dialog titles only.
 
 ## Configure and start local alerts
 
 ```bash
 cp watchlist.example.json watchlist.local.json
 ```
+
+On Windows PowerShell, use `Copy-Item watchlist.example.json watchlist.local.json`.
 
 Edit `watchlist.local.json` and replace the example with exact titles from `list_chats.py`. Add phrases used by the groups where appointment availability is discussed. The watchlist is Git-ignored.
 
@@ -44,13 +57,26 @@ For ongoing checks on macOS, install the user-level background service:
 .venv/bin/python scripts/manage_monitor.py install
 ```
 
-It starts at login and restarts after a crash while the account remains logged in. The Mac must be awake and online to receive updates promptly. To stop and remove it:
+The installer copies code and private configuration into `~/Library/Application Support/Visa Appointment Scout/runtime` so the background process does not depend on the agent workspace. It starts at login and restarts after a crash while the account remains logged in. The Mac must be awake and online to receive updates promptly. To stop and remove it:
 
 ```bash
 .venv/bin/python scripts/manage_monitor.py uninstall
 ```
 
-The monitor processes new and pending Telegram updates locally using a fixed phrase list, never an AI model. It does not save message text, download media, or put post content in notifications or logs. A match notification names the selected chat so the user can open its original post and verify it. Wording gaps can cause missed or noisy alerts; a group report is not proof of live availability.
+On Windows PowerShell, test and install the interactive Task Scheduler task with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\monitor_telegram.py --test-notification
+.\.venv\Scripts\python.exe scripts\manage_monitor.py install
+```
+
+The task starts at sign-in in the user's interactive session so Windows notifications can appear. Keep the PC awake and online. Remove it with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\manage_monitor.py uninstall
+```
+
+The monitor processes new and pending Telegram updates locally using a fixed phrase list, never an AI model. It does not save message text or download media. Notifications are generic; the private local log contains only the selected chat title and message time, not post text. The user opens Telegram to find and verify the original post. Wording gaps can cause missed or noisy alerts; a group report is not proof of live availability.
 
 Telegram's current terms prohibit using platform content with AI/ML systems unless every relevant user has given explicit, informed, ongoing consent scoped to that chat and content. This project therefore does not export Telegram messages for AI summaries. See the terms linked from `SKILL.md` before changing this design.
 

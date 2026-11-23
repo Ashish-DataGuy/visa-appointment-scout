@@ -18,6 +18,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from telethon import TelegramClient, events
 from telethon.utils import get_peer_id
+from local_security import secure_directory, secure_file
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE_DIR = ROOT / "private"
@@ -64,14 +65,38 @@ def load_watchlist() -> tuple[list[str], list[str], list[str]]:
     return channels, positive, phrases("exclude_phrases")
 
 
-def notify(chat_title: str | None = None) -> None:
-    safe_title = " ".join((chat_title or "a monitored Telegram chat").split()).replace('"', "'").replace("\\", "/")
-    body = f"Possible appointment report in {safe_title}. Open Telegram and verify it."
+def notify() -> None:
+    body = "A monitored Telegram chat may mention a visa slot. Open Telegram and verify it."
     if sys.platform != "darwin":
+        if sys.platform == "win32":
+            try:
+                from winotify import Notification
+            except ImportError:
+                print("Install requirements.txt to enable Windows toast notifications.", file=sys.stderr, flush=True)
+                print(body, flush=True)
+                return
+            try:
+                toast = Notification(app_id="Visa Appointment Scout", title="Visa Appointment Scout", msg=body)
+                toast.show()
+            except Exception:
+                print("Could not show a Windows toast; check Windows notification settings.", file=sys.stderr, flush=True)
+                print(body, flush=True)
+            return
         print(body, flush=True)
         return
-    script = f'display notification "{body}" with title "Visa Appointment Scout" sound name "default"'
-    result = subprocess.run(["osascript", "-e", script], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "osascript", "-l", "JavaScript", "-e",
+            'ObjC.import("Foundation"); ObjC.import("AppKit"); '
+            'var n = $.NSUserNotification.alloc.init; '
+            'n.title = "Visa Appointment Scout"; '
+            f'n.informativeText = {json.dumps(body)}; '
+            '$.NSUserNotificationCenter.defaultUserNotificationCenter.deliverNotification(n);',
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
     if result.returncode:
         print("Could not show a macOS notification; check notification settings.", file=sys.stderr, flush=True)
 
@@ -84,8 +109,11 @@ def parse_arguments() -> argparse.Namespace:
 
 async def main() -> None:
     os.umask(0o077)
-    PRIVATE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
-    PRIVATE_DIR.chmod(0o700)
+    secure_directory(PRIVATE_DIR)
+    if sys.platform == "win32" and (sys.stdout is None or sys.stderr is None):
+        stream = (PRIVATE_DIR / "monitor.log").open("a", encoding="utf-8")
+        sys.stdout = stream
+        sys.stderr = stream
     args = parse_arguments()
     if args.test_notification:
         notify()
@@ -143,8 +171,9 @@ async def main() -> None:
                 seen.popitem(last=False)
             title = resolved_titles.get(key[0], "selected chat")
             timestamp = message.date.astimezone(timezone.utc).isoformat()
-            print(f"Possible slot-related report | {title} | message time {timestamp} UTC", flush=True)
-            notify(title)
+            safe_title = " ".join(title.split())
+            print(f"Possible slot-related report | {safe_title} | message time {timestamp} UTC", flush=True)
+            notify()
 
         client.add_event_handler(handle, events.NewMessage(chats=selected, incoming=True))
         client.add_event_handler(handle, events.MessageEdited(chats=selected))
@@ -155,7 +184,7 @@ async def main() -> None:
             await client.disconnect()
         session_file = SESSION.with_suffix(".session")
         if session_file.exists():
-            session_file.chmod(0o600)
+            secure_file(session_file)
 
 
 if __name__ == "__main__":

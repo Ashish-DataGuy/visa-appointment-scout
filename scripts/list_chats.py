@@ -6,11 +6,11 @@ from __future__ import annotations
 import asyncio
 import getpass
 import os
-import stat
 from pathlib import Path
 
 from dotenv import load_dotenv
 from telethon import TelegramClient
+from local_security import secure_directory, secure_file
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE_DIR = ROOT / "private"
@@ -30,8 +30,7 @@ def get_credentials() -> tuple[int, str]:
 
 async def main() -> None:
     os.umask(0o077)
-    PRIVATE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
-    PRIVATE_DIR.chmod(0o700)
+    secure_directory(PRIVATE_DIR)
     api_id, api_hash = get_credentials()
     client = TelegramClient(str(SESSION), api_id, api_hash)
     try:
@@ -52,7 +51,7 @@ async def main() -> None:
             await client.disconnect()
         session_file = SESSION.with_suffix(".session")
         if session_file.exists():
-            session_file.chmod(stat.S_IRUSR | stat.S_IWUSR)
+            secure_file(session_file)
 
 
 if __name__ == "__main__":

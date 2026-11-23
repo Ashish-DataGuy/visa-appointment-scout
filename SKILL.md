@@ -66,9 +66,13 @@ TG_API_HASH=
 
 Add `.venv/`, `.env`, `.env.*`, `private/`, and `*.session*` to `.gitignore`; ensure `.env.example` is the only allowed `.env.*` exception. Restrict `.env` and session permissions to the owner. A Telethon session is a login credential, not a harmless cache. Never commit or share it.
 
+For Windows PowerShell, use the venv interpreter from `.\.venv\Scripts\python.exe` and copy the watchlist with `Copy-Item watchlist.example.json watchlist.local.json`. The setup helper applies a current-user NTFS ACL to private files; keep the checkout in a non-shared folder under the user's profile. The Windows notification dependency is installed from `requirements.txt`.
+
+On macOS, the monitor uses the built-in notification center through JavaScript for Automation; allow notifications for the process if macOS asks.
+
 Load the local file without overriding values already exported by the user, and keep the session path inside `private/`. Ask the account owner to enter API values, phone number, login code, and any 2FA password directly in their local terminal; hide the API hash, code, and password while typing. Do not persist login codes or 2FA passwords. Each user should create and retain their own session.
 
-List authorized dialog titles, then copy `watchlist.example.json` to `watchlist.local.json` and select exact group or channel titles. Set the phrases to match the community's wording. Start `scripts/monitor_telegram.py` in the foreground to see that the connection works; it alerts on new matching posts and Telegram's pending updates after reconnection. For an always-on Mac, the user can install the LaunchAgent described in `README.md`. It runs only while the user account is logged in and the Mac has connectivity; sleep, outages, missed Telegram updates, notification settings, and keyword gaps can delay or prevent an alert. Do not claim every slot or message will be detected.
+List authorized dialog titles, then copy `watchlist.example.json` to `watchlist.local.json` and select exact group or channel titles. Set the phrases to match the community's wording. Start `scripts/monitor_telegram.py` in the foreground to see that the connection works; it alerts on new matching posts and Telegram's pending updates after reconnection. For ongoing use, install the platform service described in `README.md`: LaunchAgent on macOS or an interactive Task Scheduler job on Windows. On Windows, run the monitor with `.\.venv\Scripts\python.exe scripts\monitor_telegram.py` and install it with `.\.venv\Scripts\python.exe scripts\manage_monitor.py install`. It runs only while the user account is logged in; the computer must be awake and online. Sleep, outages, missed Telegram updates, notification settings, and keyword gaps can delay or prevent an alert. Do not claim every slot or message will be detected.
 
 The matcher is deterministic and intentionally cautious: it can miss synonyms, non-English posts, images, or ambiguous phrasing, and can alert on rumors or outdated posts. The notification is a lead, not confirmation of live inventory. It tells the user to open the original post and manually check the official scheduling service. Store only the local Telethon session and monitor diagnostics; do not persist message text, scrape chat history, or send content to AI.
 
@@ -79,7 +83,7 @@ For government updates, prefer official RSS feeds, documented public APIs, and p
 Connect only through an account the applicant controls and only to channels or groups they are allowed to access. A Telegram API session can expose the account's other chats; never collect another person's credentials or session file.
 
 - Keep each user's API credentials and login codes out of chat. Enter them locally or use an approved local secret store.
-- Keep `.env` and Telegram session databases out of Git; restrict local permissions and never share session files.
+- Keep `.env` and Telegram session databases out of Git; restrict local permissions or Windows NTFS access controls and never share session files.
 - Monitor only explicitly selected group/channel titles. Do not read or export historical message contents for AI analysis.
 - The monitor may inspect incoming text in memory solely for local phrase matching. Do not download media or attachments.
 - Do not send Telegram content, excerpts, screenshots, or user paraphrases of message content to an AI system unless the Telegram consent requirement above is met. Redaction alone does not establish consent.
