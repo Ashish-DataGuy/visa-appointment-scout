@@ -7,6 +7,10 @@ description: Surface visa appointment signals from official public updates and a
 
 Help an individual applicant understand appointment availability and prepare to act. Separate official information from community reports, protect applicants' data, and keep account actions under the applicant's control.
 
+## How to use this skill
+
+Install this folder as a skill in a compatible agent, or provide the repository and ask the agent to read `SKILL.md` and follow `README.md`. `scripts/configure_credentials.py` creates a local private Telegram configuration, `scripts/list_chats.py` lists accessible dialog titles without reading history, and `scripts/export_recent_messages.py` prints a bounded, redacted sample for analysis. The skill file by itself is guidance; the scripts are what create the local Telegram connection.
+
 ## Portal access gate
 
 Check the current country-specific appointment service terms before interacting with a scheduling portal. Recheck them when the task runs; do not rely on old instructions or third-party claims.
@@ -45,12 +49,7 @@ Useful starting points:
 
 ## Local Telegram setup pattern
 
-Keep the Telegram reader in its own project directory and virtual environment. A typical setup uses Telethon with `python-dotenv`:
-
-```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install telethon python-dotenv
-```
+Keep the Telegram reader in its own project directory and virtual environment. The repository includes a pinned Telethon dependency and setup scripts; follow the commands in `README.md`.
 
 Provide `TG_API_ID` and `TG_API_HASH` either as process environment variables or in a local `.env` file. A template contains only empty keys:
 
@@ -63,7 +62,7 @@ Add `.venv/`, `.env`, `.env.*`, `private/`, and `*.session*` to `.gitignore`; en
 
 Load the local file without overriding values already exported by the user, and keep the session path inside `private/`. Ask the account owner to enter API values, phone number, login code, and any 2FA password directly in their local terminal; hide the API hash, code, and password while typing. Do not persist login codes or 2FA passwords. Each user should create and retain their own session.
 
-First list the authorized dialog titles to confirm the intended channels; this does not require reading history. When the user requests message analysis, fetch a bounded recent sample (300 messages per channel is a useful starting point), record the date range, then paginate older only as needed to cover the requested period. Do not interpret reaching a message limit as evidence that the sample is representative.
+First list the authorized dialog titles to confirm the intended channels; this does not require reading history. When the user requests message analysis, use the exporter with explicit channel titles and `--confirm-read`. It defaults to 300 recent messages per channel (with a hard limit of 1,000), prints redacted JSONL to standard output, and does not save message history. Record the date range, then paginate older only as needed to cover the requested period. Do not interpret reaching a message limit as evidence that the sample is representative. Redaction is heuristic, so inspect content before sharing it outside the user's local agent session.
 
 For government updates, prefer official RSS feeds, documented public APIs, and public notices. Use only each source's published access method. Do not scrape a site or automate a logged-in account when its terms do not allow it. The visa wait-time table is a monthly estimate; it is not a feed of live appointment slots.
 

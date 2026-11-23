@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local credentials and account sessions
+.env
+.env.*
+!.env.example
+private/
+*.session
+*.session-journal
+*.session-wal
+*.session-shm
+
+# User-specific source/channel configuration
+sources.local.yml

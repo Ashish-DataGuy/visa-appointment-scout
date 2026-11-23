@@ -1,0 +1,16 @@
+# Copy to sources.local.yml and add sources you are authorized to monitor.
+# Do not add personal Telegram account details or credentials here.
+official_sources:
+  - name: U.S. Department of State visa wait times
+    url: https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html
+    access: public-page
+    notes: Monthly estimates; not live appointment inventory.
+  - name: U.S. visa appointment service
+    url: https://www.ustraveldocs.com/
+    access: manual-only
+    notes: Follow current country-specific terms; India portal terms prohibit automated access.
+
+telegram_channels:
+  # Add exact channel titles from your own Telegram dialog list.
+  - title: ""
+    purpose: ""
