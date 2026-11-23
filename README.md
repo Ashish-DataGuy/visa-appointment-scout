@@ -50,7 +50,7 @@ It starts at login and restarts after a crash while the account remains logged i
 .venv/bin/python scripts/manage_monitor.py uninstall
 ```
 
-The monitor processes new and pending Telegram updates locally using a fixed phrase list, never an AI model. It does not save message text, download media, or put content in notifications or logs. When a phrase matches, the user opens the original Telegram post and verifies it. Wording gaps can cause missed or noisy alerts; a group report is not proof of live availability.
+The monitor processes new and pending Telegram updates locally using a fixed phrase list, never an AI model. It does not save message text, download media, or put post content in notifications or logs. A match notification names the selected chat so the user can open its original post and verify it. Wording gaps can cause missed or noisy alerts; a group report is not proof of live availability.
 
 Telegram's current terms prohibit using platform content with AI/ML systems unless every relevant user has given explicit, informed, ongoing consent scoped to that chat and content. This project therefore does not export Telegram messages for AI summaries. See the terms linked from `SKILL.md` before changing this design.
 

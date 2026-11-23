@@ -15,7 +15,7 @@ Install this folder as a skill in a compatible agent, or provide the repository 
 
 Recheck [Telegram's API Terms](https://core.telegram.org/api/terms) and [Content Licensing Terms](https://telegram.org/tos/content-licensing?setln=en) before using Telegram data. The terms reviewed on 2026-11-23 prohibit scraping, indexing, harvesting, aggregating, or using platform content to train, validate, develop, enhance, benchmark, or deploy AI/ML systems, except where all relevant users give explicit, informed, affirmative, continuing consent limited to that chat and content. Do not send Telegram posts to an AI model, summarize them with an AI, or use them as model context unless that consent requirement is met. A channel being public or a user joining it does not establish that consent.
 
-The included monitor performs simple local phrase matching only, keeps message text in memory only, and sends no Telegram content to an AI service or notification. It raises a generic alert so the user can open Telegram and inspect the source in Telegram's ordinary interface. Do not add message archives, global search, bulk export, or AI classification. If Telegram changes these terms, reassess before changing this design.
+The included monitor performs simple local phrase matching only, keeps message text in memory only, and sends no post text to an AI service or notification. Its local alert names the selected chat and asks the user to open the source in Telegram's ordinary interface. Do not add message archives, global search, bulk export, or AI classification. If Telegram changes these terms, reassess before changing this design.
 
 ## Portal access gate
 
@@ -95,7 +95,7 @@ Independent firsthand reports may strengthen a person's lead, but do not confirm
 
 ## Alerts and booking help
 
-Make local alerts concise and non-alarming. The included monitor intentionally avoids copying the post or its text into the alert. It says only that a selected group may contain an appointment signal and asks the user to verify it in Telegram. Do not repeat Telegram-derived content back in the AI conversation unless the consent requirement is met.
+Make local alerts concise and non-alarming. The included monitor intentionally avoids copying the post or its text into the alert. It names the selected chat, says a post may mention an appointment opening, and asks the user to verify it in Telegram. Do not repeat Telegram-derived content back in the AI conversation unless the consent requirement is met.
 
 The agent may summarize official instructions, prepare a personalized checklist from facts not derived from Telegram, and guide the applicant to the official portal. The applicant must personally sign in, handle any CAPTCHA or verification, review the date and submit or pay. Never ask for or accept passwords, one-time codes, 2FA passwords, payment details, or session files in chat.
 

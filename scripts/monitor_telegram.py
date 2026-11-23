@@ -64,16 +64,16 @@ def load_watchlist() -> tuple[list[str], list[str], list[str]]:
     return channels, positive, phrases("exclude_phrases")
 
 
-def notify() -> None:
+def notify(chat_title: str | None = None) -> None:
+    safe_title = " ".join((chat_title or "a monitored Telegram chat").split()).replace('"', "'").replace("\\", "/")
+    body = f"Possible appointment report in {safe_title}. Open Telegram and verify it."
     if sys.platform != "darwin":
-        print("Possible appointment signal. Open Telegram and verify the original post manually.", flush=True)
+        print(body, flush=True)
         return
-    script = (
-        'display notification "Open Telegram and verify the original post manually. '
-        'A community report is not confirmed live inventory." '
-        'with title "Visa Appointment Scout" sound name "default"'
-    )
-    subprocess.run(["osascript", "-e", script], check=False, capture_output=True, text=True)
+    script = f'display notification "{body}" with title "Visa Appointment Scout" sound name "default"'
+    result = subprocess.run(["osascript", "-e", script], check=False, capture_output=True, text=True)
+    if result.returncode:
+        print("Could not show a macOS notification; check notification settings.", file=sys.stderr, flush=True)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -144,7 +144,7 @@ async def main() -> None:
             title = resolved_titles.get(key[0], "selected chat")
             timestamp = message.date.astimezone(timezone.utc).isoformat()
             print(f"Possible slot-related report | {title} | message time {timestamp} UTC", flush=True)
-            notify()
+            notify(title)
 
         client.add_event_handler(handle, events.NewMessage(chats=selected, incoming=True))
         client.add_event_handler(handle, events.MessageEdited(chats=selected))
