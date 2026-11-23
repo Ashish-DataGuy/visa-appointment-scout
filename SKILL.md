@@ -3,7 +3,7 @@ name: visa-appointment-scout
 description: Surface visa appointment signals from official public updates and authorized community reports, summarize consular experiences, and help applicants prepare to schedule. Use for visa-slot monitoring or appointment research; do not automate a protected booking portal unless its current official terms expressly permit it.
 ---
 
-# Visa slot monitoring and applicant support
+# Visa Appointment Scout
 
 Help an individual applicant understand appointment availability and prepare to act. Separate official information from community reports, protect applicants' data, and keep account actions under the applicant's control.
 
@@ -42,6 +42,30 @@ Useful starting points:
 - [U.S. visa scheduling portal terms](https://atlasportalauthsa.z2.web.core.usgovcloudapi.net/B2C/assets/html/content-atlassusi.html)
 - [CEAC visa status](https://ceac.state.gov/CEACStatTracker/Status.aspx)
 - [USCIS](https://www.uscis.gov/)
+
+## Local Telegram setup pattern
+
+Keep the Telegram reader in its own project directory and virtual environment. A typical setup uses Telethon with `python-dotenv`:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install telethon python-dotenv
+```
+
+Provide `TG_API_ID` and `TG_API_HASH` either as process environment variables or in a local `.env` file. A template contains only empty keys:
+
+```dotenv
+TG_API_ID=
+TG_API_HASH=
+```
+
+Add `.venv/`, `.env`, `.env.*`, `private/`, and `*.session*` to `.gitignore`; ensure `.env.example` is the only allowed `.env.*` exception. Restrict `.env` and session permissions to the owner. A Telethon session is a login credential, not a harmless cache. Never commit or share it.
+
+Load the local file without overriding values already exported by the user, and keep the session path inside `private/`. Ask the account owner to enter API values, phone number, login code, and any 2FA password directly in their local terminal; hide the API hash, code, and password while typing. Do not persist login codes or 2FA passwords. Each user should create and retain their own session.
+
+First list the authorized dialog titles to confirm the intended channels; this does not require reading history. When the user requests message analysis, fetch a bounded recent sample (300 messages per channel is a useful starting point), record the date range, then paginate older only as needed to cover the requested period. Do not interpret reaching a message limit as evidence that the sample is representative.
+
+For government updates, prefer official RSS feeds, documented public APIs, and public notices. Use only each source's published access method. Do not scrape a site or automate a logged-in account when its terms do not allow it. The visa wait-time table is a monthly estimate; it is not a feed of live appointment slots.
 
 ## Telegram and community reports
 
